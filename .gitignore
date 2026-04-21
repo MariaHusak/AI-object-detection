@@ -1,0 +1,87 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+celerybeat-schedule
+
+# =========================
+# Environment variables
+# =========================
+.env
+
+# =========================
+# Python tooling
+# =========================
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Build / packaging
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Project generated folders
+# =========================
+uploads/*
+outputs/*
+
+# keep folders
+!uploads/.gitkeep
+!outputs/.gitkeep
+
+# =========================
+# AI Models
+# =========================
+**/models/*.pt
+**/models/*.pth
+**/models/*.onnx
+**/models/*.engine
+
+# =========================
+# SAM2 cloned repository
+# =========================
+segment-anything-2/
+
+# =========================
+# Redis / Celery temp
+# =========================
+dump.rdb
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
