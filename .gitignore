@@ -56,8 +56,8 @@ dist/
 # =========================
 # Project generated folders
 # =========================
-uploads/*
-outputs/*
+**/uploads/*
+**/outputs/*
 
 # keep folders
 !**/uploads/.gitkeep
