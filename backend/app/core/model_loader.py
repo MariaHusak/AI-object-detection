@@ -1,9 +1,17 @@
+from pathlib import Path
+
 from ultralytics import YOLO
 import torch
-import os
 
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+YOLO_MODEL_PATH = "models/best.pt"
+SAM2_CONFIG_PATH = BASE_DIR / "segment-anything-2" / "sam2" / "configs" / "sam2.1" / "sam2.1_hiera_s.yaml"
+SAM2_CHECKPOINT_PATH = BASE_DIR / "models" / "sam2.1_hiera_small.pt"
 
 
 class ModelLoader:
@@ -13,40 +21,24 @@ class ModelLoader:
     @classmethod
     def get_yolo(cls):
         if cls._yolo is None:
-            cls._yolo = YOLO("models/best.pt")
+            cls._yolo = YOLO(YOLO_MODEL_PATH)
         return cls._yolo
 
     @classmethod
     def get_sam2(cls):
         if cls._sam2 is None:
-
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-
-            BASE_DIR = os.path.dirname(
-                os.path.dirname(os.path.dirname(__file__))
-            )
-
-            config_path = os.path.join(
-                BASE_DIR,
-                "segment-anything-2",
-                "sam2",
-                "configs",
-                "sam2.1",
-                "sam2.1_hiera_s.yaml"
-            )
-
-            checkpoint_path = os.path.join(
-                BASE_DIR,
-                "models",
-                "sam2.1_hiera_small.pt"
-            )
-
-            model = build_sam2(
-                config_path,
-                checkpoint_path,
-                device=device
-            )
-
-            cls._sam2 = SAM2ImagePredictor(model)
-
+            cls._sam2 = cls._build_sam2()
         return cls._sam2
+
+    @classmethod
+    def _build_sam2(cls):
+        model = build_sam2(
+            str(SAM2_CONFIG_PATH),
+            str(SAM2_CHECKPOINT_PATH),
+            device=cls._get_device()
+        )
+        return SAM2ImagePredictor(model)
+
+    @staticmethod
+    def _get_device():
+        return "cuda" if torch.cuda.is_available() else "cpu"
