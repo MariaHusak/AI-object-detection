@@ -1,13 +1,20 @@
-from fastapi import APIRouter, UploadFile, File, Query
+from fastapi import APIRouter, UploadFile, File, Query, Depends
 from typing import List, Optional
 
+from app.utils.file_validator import validate_image
 from app.utils.file_manager import save_upload_file
 from app.facades.ai_facade import AIFacade
 
 router = APIRouter(prefix="/image", tags=["Image"])
 
-facade = AIFacade()
 
+def get_facade() -> AIFacade:
+    return AIFacade()
+
+
+def save_validated_image(file: UploadFile = File(...)) -> str:
+    validate_image(file)
+    return save_upload_file(file)
 
 
 @router.get("/")
@@ -16,54 +23,49 @@ def image_home():
 
 
 @router.post("/detect")
-async def detect(file: UploadFile = File(...)):
-    path = save_upload_file(file)
-    result = facade.detect(path)
-
+async def detect(
+    path: str = Depends(save_validated_image),
+    facade: AIFacade = Depends(get_facade)
+):
     return {
         "file": path,
-        "detections": result
+        "detections": facade.detect(path)
     }
 
 
 @router.post("/detect-preview")
-async def detect_preview(file: UploadFile = File(...)):
-    path = save_upload_file(file)
-    result = facade.detect_preview(path)
-
-    return result
+async def detect_preview(
+    path: str = Depends(save_validated_image),
+    facade: AIFacade = Depends(get_facade)
+):
+    return facade.detect_preview(path)
 
 
 @router.post("/segment-preview")
-async def segment_preview(file: UploadFile = File(...)):
-    path = save_upload_file(file)
+async def segment_preview(
+    path: str = Depends(save_validated_image),
+    facade: AIFacade = Depends(get_facade)
+):
     return facade.segment_preview(path)
 
 
 @router.post("/cutout")
 async def cutout(
-    file: UploadFile = File(...),
+    path: str = Depends(save_validated_image),
+    facade: AIFacade = Depends(get_facade),
     selected_indices: Optional[List[int]] = Query(default=None),
     mode: str = "multi"
 ):
-    path = save_upload_file(file)
-
     return facade.cutout(path, selected_indices, mode)
 
 
 @router.post("/replace-background")
 async def replace_background(
-    file: UploadFile = File(...),
+    facade: AIFacade = Depends(get_facade),
+    image_path: str = Depends(save_validated_image),
     bg_file: UploadFile = File(...),
     selected_indices: Optional[List[int]] = Query(default=None)
 ):
-    image_path = save_upload_file(file)
     bg_path = save_upload_file(bg_file)
-
-    return facade.replace_background(
-        image_path,
-        bg_path,
-        selected_indices
-    )
-
-
+    validate_image(bg_file)
+    return facade.replace_background(image_path, bg_path, selected_indices)

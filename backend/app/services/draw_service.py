@@ -1,98 +1,46 @@
-import cv2
-import uuid
 import numpy as np
-from pathlib import Path
-
-OUTPUT_DIR = Path("outputs")
-OUTPUT_DIR.mkdir(exist_ok=True)
+from app.business_logic.image_loader import ImageLoader
+from app.business_logic.image_saver import ImageSaver
+from app.business_logic.color_service import ColorService
+from app.business_logic.box_renderer import BoxRenderer
+from app.business_logic.label_renderer import LabelRenderer
+from app.business_logic.mask_renderer import MaskRenderer
 
 
 class DrawService:
+    def __init__(self):
+        self._color_service = ColorService()
+        self._box_renderer = BoxRenderer()
+        self._label_renderer = LabelRenderer()
+        self._mask_renderer = MaskRenderer()
 
     def draw_boxes(self, image_path, detections):
-        image = cv2.imread(image_path)
+        image = ImageLoader.load_rgba(image_path)
 
         for det in detections:
-            x1, y1, x2, y2 = map(int, det["box"])
+            color = self._color_service.default()
+            self._draw_detection(image, det, color)
 
-            label = det.get("class", det.get("name", "object"))
-            conf = det.get("confidence", 0)
-
-            color = (0, 255, 0)
-
-            cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
-
-            text = f"{label} {conf:.2f}"
-
-            cv2.putText(
-                image,
-                text,
-                (x1, y1 - 10),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                color,
-                2
-            )
-
-        filename = f"{uuid.uuid4()}.jpg"
-        output_path = OUTPUT_DIR / filename
-
-        cv2.imwrite(str(output_path), image)
-
-        return str(output_path)
+        return ImageSaver.save_png(image)
 
     def draw_segmentation(self, image_path, detections, masks):
-        image = cv2.imread(image_path)
+        image = ImageLoader.load_rgba(image_path)
         overlay = image.copy()
 
         for det, mask in zip(detections, masks):
+            color = self._color_service.random()
+            self._mask_renderer.apply(overlay, mask, color)
+            self._draw_detection(image, det, color)
 
-            x1, y1, x2, y2 = map(int, det["box"])
+        result = self._mask_renderer.blend(overlay, image)
+        return ImageSaver.save_png(result)
 
-            color = (
-                int(np.random.randint(50, 255)),
-                int(np.random.randint(50, 255)),
-                int(np.random.randint(50, 255))
-            )
+    def _draw_detection(self, image, det, color):
+        x1, y1, x2, y2 = map(int, det["box"])
+        self._box_renderer.draw(image, (x1, y1, x2, y2), color)
+        self._label_renderer.draw(image, self._format_label(det), x1, y1, color)
 
-            mask_bool = mask.astype(bool)
-
-            overlay[mask_bool] = color
-
-            cv2.rectangle(
-                image,
-                (x1, y1),
-                (x2, y2),
-                color,
-                2
-            )
-
-            label = det["class"]
-            conf = det["confidence"]
-
-            text = f"{label} {conf:.2f}"
-
-            cv2.putText(
-                image,
-                text,
-                (x1, y1 - 10),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                color,
-                2
-            )
-
-        result = cv2.addWeighted(
-            overlay,
-            0.35,
-            image,
-            0.65,
-            0
-        )
-
-        filename = f"{uuid.uuid4()}.jpg"
-        output_path = OUTPUT_DIR / filename
-
-        cv2.imwrite(str(output_path), result)
-
-        return str(output_path)
+    def _format_label(self, det):
+        label = det.get("class", det.get("name", "object"))
+        conf = det.get("confidence", 0)
+        return f"{label} {conf:.2f}"

@@ -1,5 +1,7 @@
-class AIPipeline:
+from app.domain.protocols import Detector, Segmenter
 
-    def __init__(self, detector, segmenter):
+
+class AIPipeline:
+    def __init__(self, detector: Detector, segmenter: Segmenter):
         self.detector = detector
         self.segmenter = segmenter

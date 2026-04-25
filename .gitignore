@@ -56,12 +56,12 @@ dist/
 # =========================
 # Project generated folders
 # =========================
-uploads/*
-outputs/*
+**/uploads/*
+**/outputs/*
 
 # keep folders
-!uploads/.gitkeep
-!outputs/.gitkeep
+!**/uploads/.gitkeep
+!**/outputs/.gitkeep
 
 # =========================
 # AI Models
