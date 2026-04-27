@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Depends
-
+from app.auth.dependencies import get_current_user
 from app.utils.file_validator import validate_video
 from app.utils.file_manager import save_upload_file
 from app.facades.ai_facade import AIFacade
@@ -23,6 +23,7 @@ def video_home():
 
 @router.post("/process")
 async def process_video(
+    user=Depends(get_current_user),
     path: str = Depends(save_validated_video),
     facade: AIFacade = Depends(get_facade)
 ):
@@ -31,6 +32,7 @@ async def process_video(
 
 @router.post("/process-async")
 async def process_video_async(
+    user=Depends(get_current_user),
     path: str = Depends(save_validated_video),
     facade: AIFacade = Depends(get_facade)
 ):
