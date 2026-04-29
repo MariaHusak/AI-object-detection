@@ -8,6 +8,9 @@ from app.business_logic.mask_service import MaskService
 from app.workers.celery_tasks import process_video_task
 from celery.result import AsyncResult
 from app.core.celery_app import celery_app
+import os
+
+BASE_URL = "http://localhost:8000"
 
 
 class AIFacade:
@@ -24,16 +27,37 @@ class AIFacade:
 
     def detect_preview(self, image_path):
         detections = self.detect(image_path)
-        return self.drawer.draw_boxes(image_path, detections)
+
+        image_url = self.drawer.draw_boxes(image_path, detections)
+
+        return {
+            "image_url": image_url,
+            "boxes": self._format_boxes(detections)
+        }
 
     def segment_preview(self, image_path, selected_indices=None):
-        detections, masks = self._detect_and_segment(image_path, selected_indices)
-        result = self.drawer.draw_segmentation(image_path, detections, masks)
-        return {"detections": detections, "result_image": result}
+        detections, masks = self._detect_and_segment(
+            image_path, selected_indices)
+        result = self.drawer.draw_segmentation(
+            image_path, detections, masks)
+        return {
+            "result_image": result,
+            "detections": self._format_boxes(detections)
+        }
 
     def cutout(self, image_path, selected_indices=None, mode="multi"):
-        _, masks = self._detect_and_segment(image_path, selected_indices)
-        return self._create_cutout_by_mode(image_path, masks, mode)
+        detections, masks = self._detect_and_segment(image_path, selected_indices)
+        result = self._create_cutout_by_mode(image_path, masks, mode)
+        cutouts = result.get("cutouts") or [result.get("cutout")]
+        cutouts = [self._to_url(c) for c in cutouts if c]
+
+        return {
+            "image_url": self.drawer._to_public_url(
+                self.drawer.draw_boxes(image_path, detections)
+            ),
+            "cutouts": cutouts,
+            "detections": self._format_boxes(detections)
+        }
 
     def replace_background(self, image_path, bg_path, selected_indices=None):
         _, masks = self._detect_and_segment(image_path, selected_indices)
@@ -72,3 +96,24 @@ class AIFacade:
             return {"cutouts": self.cutter.create_cutout(image_path, masks)}
         elif mode == "combined":
             return {"cutout": self.cutter.create_combined_cutout(image_path, masks)}
+
+    def _format_boxes(self, detections):
+        formatted = []
+        for det in detections:
+            x1, y1, x2, y2 = det["box"]
+            formatted.append({
+                "x": int(x1),
+                "y": int(y1),
+                "w": int(x2 - x1),
+                "h": int(y2 - y1),
+                "label": det["class"],
+                "conf": det["confidence"]
+            })
+
+        return formatted
+
+    def _to_url(self, path: str):
+        return BASE_URL + "/" + path.replace("\\", "/")
+
+
+
