@@ -15,12 +15,9 @@ class AuthFacade:
 
     def register(self, username, password):
         existing = self.users.get_by_username(username)
-
         if existing:
             raise HTTPException(400, "User exists")
-
         hashed = self.password.hash(password)
-
         user = self.users.create(
             username,
             hashed
@@ -33,10 +30,8 @@ class AuthFacade:
 
     def login(self, username, password):
         user = self.users.get_by_username(username)
-
         if not user:
             raise HTTPException(401, "Invalid credentials")
-
         if not self.password.verify(password, user.password):
             raise HTTPException(401, "Invalid credentials")
 
