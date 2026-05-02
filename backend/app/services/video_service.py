@@ -13,7 +13,7 @@ class VideoService:
 
     def process_video(self, video_path: str):
         cap = cv2.VideoCapture(video_path)
-        out, output_path = VideoSaver.create_writer(
+        out, temp_path, final_path = VideoSaver.create_writer(
             *self._get_frame_size(cap),
             self._get_fps(cap)
         )
@@ -22,10 +22,10 @@ class VideoService:
             if not ret:
                 break
             self._process_frame(frame, out)
-
         cap.release()
         out.release()
-        return output_path
+
+        return VideoSaver.convert_to_h264(temp_path, final_path)
 
     def _process_frame(self, frame, out):
         results = self.yolo(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))[0]

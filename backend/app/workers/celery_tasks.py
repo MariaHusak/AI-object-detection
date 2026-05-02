@@ -10,5 +10,5 @@ def process_video_task(self, video_path: str):
     result_path = video_service.process_video(video_path)
 
     return {
-        "result": result_path
+        "video": result_path
     }
