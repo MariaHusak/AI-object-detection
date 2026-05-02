@@ -1,13 +1,17 @@
 import numpy as np
+import cv2
 
 
 class MaskService:
 
     @staticmethod
     def apply(image, mask):
-        mask = mask.astype(bool)
-
-        result = np.zeros_like(image)
+        mask = cv2.resize(
+            mask.astype(np.uint8),
+            (image.shape[1], image.shape[0])
+        ).astype(bool)
+        h, w = image.shape[:2]
+        result = np.zeros((h, w, 4), dtype=np.uint8)
         result[mask] = image[mask]
         result[~mask] = [0, 0, 0, 0]
 
