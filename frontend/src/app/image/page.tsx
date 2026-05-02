@@ -18,7 +18,6 @@ export default function ImagePage() {
   const [boxes, setBoxes] = useState<any[]>([]);
   const [cutoutUrls, setCutoutUrls] = useState<string[]>([]);
 
-  // BG
   const [bgFile, setBgFile] = useState<File | null>(null);
   const [bgResultUrl, setBgResultUrl] = useState("");
 
@@ -50,9 +49,6 @@ export default function ImagePage() {
     }
   };
 
-  // =========================
-  // MAIN AI PIPELINE
-  // =========================
   const processImage = async () => {
     if (!file) return;
 
@@ -82,7 +78,6 @@ export default function ImagePage() {
         setCutoutUrls([]);
       }
 
-      // reset BG якщо новий процес
       setBgResultUrl("");
     } catch (err) {
       console.error(err);
@@ -92,9 +87,6 @@ export default function ImagePage() {
     setLoading(false);
   };
 
-  // =========================
-  // REPLACE BACKGROUND
-  // =========================
   const replaceBackground = async () => {
     if (!bgFile || !cutoutReady) return;
 
@@ -102,7 +94,6 @@ export default function ImagePage() {
     setBgResultUrl("");
 
     try {
-      // беремо cutout як blob
       const cutoutRes = await fetch(cutoutUrls[0]);
       const cutoutBlob = await cutoutRes.blob();
 
@@ -111,9 +102,7 @@ export default function ImagePage() {
       formData.append("bg_file", bgFile);
 
       const res = await api.post("/image/replace-background", formData);
-      const data = res.data;
-
-      setBgResultUrl(data.result_image);
+      setBgResultUrl(res.data.result_image);
     } catch (err) {
       console.error(err);
       alert("Replace BG failed");
@@ -135,7 +124,6 @@ export default function ImagePage() {
         <Sidebar />
 
         <section className="flex-1 p-8">
-          {/* HEADER */}
           <div className="mb-6">
             <h1 className="text-2xl font-semibold">AI Vision Studio</h1>
             <p className="text-sm text-gray-500">
@@ -143,7 +131,6 @@ export default function ImagePage() {
             </p>
           </div>
 
-          {/* TOOL SWITCH */}
           <div className="flex gap-2 mb-6 flex-wrap">
             {TOOLS.map((t) => {
               const isLocked = t.id === "replace-bg" && !cutoutReady;
@@ -168,7 +155,6 @@ export default function ImagePage() {
             })}
           </div>
 
-          {/* UPLOAD */}
           {tool !== "replace-bg" && (
             <div className="bg-[#111] border border-gray-800 p-6 rounded-xl mb-6">
               <input
@@ -188,10 +174,18 @@ export default function ImagePage() {
             </div>
           )}
 
-          {/* REPLACE BG PANEL */}
           {tool === "replace-bg" && (
             <div className="bg-[#111] border border-gray-800 p-6 rounded-xl mb-6 space-y-4">
-              <img src={cutoutUrls[0]} className="h-32 rounded-lg border" />
+              <div className="bg-black border border-gray-700 rounded-lg p-2 w-fit">
+                <img
+                  src={cutoutUrls[0]}
+                  className="h-32 object-contain rounded-md"
+                />
+              </div>
+
+              <p className="text-sm text-gray-500">
+                Upload background image
+              </p>
 
               <input
                 type="file"
@@ -204,19 +198,76 @@ export default function ImagePage() {
                 disabled={!bgFile || loading}
                 className="px-5 py-2 bg-white text-black rounded-md text-sm"
               >
-                {loading ? "Processing..." : "Replace Background"}
+                {loading ? "Processing..." : "Apply Background"}
               </button>
             </div>
           )}
 
-          {/* LOADING */}
           {loading && (
             <div className="bg-[#111] border border-gray-800 p-6 rounded-xl">
               AI is analyzing image...
             </div>
           )}
 
-          {/* DETECT / SEGMENT */}
+          {tool === "cutout" && imageUrl && (
+            <div className="mt-6 grid grid-cols-2 gap-6">
+              <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
+                <p className="text-sm text-gray-500 mb-2">Original</p>
+                <img src={imageUrl} className="rounded-lg w-full" />
+              </div>
+
+              <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
+                <p className="text-sm text-gray-500 mb-2">Cutout</p>
+
+                {cutoutUrls.map((url, i) => (
+                  <div key={i} className="mb-4">
+                    <img src={url} className="rounded-lg w-full mb-2" />
+
+                    <button
+                      onClick={() => downloadImage(url)}
+                      className="px-4 py-2 bg-white text-black rounded-md text-sm"
+                    >
+                      Download
+                    </button>
+                  </div>
+                ))}
+
+                {cutoutReady && (
+                  <button
+                    onClick={() => setTool("replace-bg")}
+                    className="mt-4 px-4 py-2 bg-white text-black rounded-md text-sm font-medium"
+                  >
+                    → Replace Background
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {tool === "replace-bg" && bgResultUrl && (
+            <div className="mt-6 grid grid-cols-2 gap-6">
+              <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
+                <p className="text-sm text-gray-500 mb-2">Cutout</p>
+                <img src={cutoutUrls[0]} className="rounded-lg w-full" />
+              </div>
+
+              <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
+                <p className="text-sm text-gray-500 mb-2">
+                  Background Replaced
+                </p>
+
+                <img src={bgResultUrl} className="rounded-lg w-full mb-3" />
+
+                <button
+                  onClick={() => downloadImage(bgResultUrl)}
+                  className="px-4 py-2 bg-white text-black rounded-md text-sm"
+                >
+                  Download
+                </button>
+              </div>
+            </div>
+          )}
+
           {tool !== "cutout" && tool !== "replace-bg" && imageUrl && (
             <div className="mt-6 space-y-6">
               <ImagePreview imageUrl={imageUrl} boxes={boxes} />
@@ -229,43 +280,6 @@ export default function ImagePage() {
               </button>
 
               {tool === "detect" && <DetectionResults boxes={boxes} />}
-            </div>
-          )}
-
-          {/* CUTOUT */}
-          {tool === "cutout" && imageUrl && (
-            <div className="mt-6 grid grid-cols-2 gap-6">
-              <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
-                <img src={imageUrl} />
-              </div>
-
-              <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
-                {cutoutUrls.map((url, i) => (
-                  <div key={i}>
-                    <img src={url} />
-                    <button onClick={() => downloadImage(url)}>
-                      Download
-                    </button>
-                  </div>
-                ))}
-
-                {cutoutReady && (
-                  <button
-                    onClick={() => setTool("replace-bg")}
-                    className="mt-4 border border-green-700 text-green-400 px-4 py-2 rounded"
-                  >
-                    → Replace Background
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* RESULT */}
-          {tool === "replace-bg" && bgResultUrl && (
-            <div className="mt-6 grid grid-cols-2 gap-6">
-              <img src={cutoutUrls[0]} />
-              <img src={bgResultUrl} />
             </div>
           )}
         </section>
