@@ -67,10 +67,13 @@ async def cutout(
 async def replace_background(
     user=Depends(get_current_user),
     facade: AIFacade = Depends(get_facade),
-    image_path: str = Depends(save_validated_image),
-    bg_file: UploadFile = File(...),
-    selected_indices: Optional[List[int]] = Query(default=None)
+    cutout_file: UploadFile = File(...),
+    bg_file: UploadFile = File(...)
 ):
-    bg_path = save_upload_file(bg_file)
+    validate_image(cutout_file)
+    image_path = save_upload_file(cutout_file)
+
     validate_image(bg_file)
-    return facade.replace_background(image_path, bg_path, selected_indices)
+    bg_path = save_upload_file(bg_file)
+
+    return facade.replace_background(image_path, bg_path)

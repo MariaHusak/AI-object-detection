@@ -1,8 +1,14 @@
+from PIL import Image, ImageOps
+import numpy as np
 import cv2
 
 
 class ImageLoader:
     @staticmethod
     def load_rgba(path):
-        image = cv2.imread(path)
-        return cv2.cvtColor(image, cv2.COLOR_BGR2BGRA)
+        image = Image.open(path)
+        image = ImageOps.exif_transpose(image)
+        image = image.convert("RGBA")
+
+        return np.array(image)
+

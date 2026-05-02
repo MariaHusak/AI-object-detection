@@ -59,11 +59,9 @@ class AIFacade:
             "detections": self._format_boxes(detections)
         }
 
-    def replace_background(self, image_path, bg_path, selected_indices=None):
-        _, masks = self._detect_and_segment(image_path, selected_indices)
-        combined_mask = MaskService.combine(masks)
-        result = self.bg_service.replace_background(image_path, combined_mask, bg_path)
-        return {"result_image": result}
+    def replace_background(self, image_path, bg_path):
+        result = self.bg_service.replace_background(image_path, bg_path)
+        return {"result_image": self._to_url(result)}
 
     def process_video(self, video_path):
         return {"video": self.video_service.process_video(video_path)}
