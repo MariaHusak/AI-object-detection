@@ -1,4 +1,4 @@
-# Python
+# Python & Backend
 __pycache__/
 *.py[cod]
 *$py.class
@@ -11,22 +11,9 @@ env/
 .venv/
 ENV/
 
-# IDE / Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
 # Logs
 *.log
 celerybeat-schedule
-
-# Environment variables
-.env
 
 # Python tooling
 .pytest_cache/
@@ -39,11 +26,9 @@ build/
 dist/
 *.egg-info/
 
-# Project generated folders
+# Project generated folders (Recursive)
 **/uploads/*
 **/outputs/*
-
-# keep folders
 !**/uploads/.gitkeep
 !**/outputs/.gitkeep
 
@@ -56,14 +41,57 @@ dist/
 # SAM2 cloned repository
 segment-anything-2/
 
-# Redis / Celery temp
-dump.rdb
-
-# Jupyter
-.ipynb_checkpoints/
-
 # Databases
 *.db
 *.sqlite
 *.sqlite3
 **/app.db
+
+# Redis / Celery temp
+dump.rdb
+
+# Frontend (Next.js)
+# Dependencies
+**/frontend/node_modules/
+**/frontend/.pnp
+**/frontend/.pnp.*
+**/frontend/.yarn/*
+!**/frontend/.yarn/patches
+!**/frontend/.yarn/plugins
+!**/frontend/.yarn/releases
+!**/frontend/.yarn/versions
+
+# Next.js build and output
+**/frontend/.next/
+**/frontend/out/
+**/frontend/build/
+
+# Debug and Logs
+**/frontend/npm-debug.log*
+**/frontend/yarn-debug.log*
+**/frontend/yarn-error.log*
+**/frontend/.pnpm-debug.log*
+
+# Typescript
+**/frontend/*.tsbuildinfo
+**/frontend/next-env.d.ts
+
+# Vercel
+**/frontend/.vercel
+
+# General / IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.pem
+
+# Environment variables (Global protection)
+.env
+.env*
+**/.env*
+
+# Jupyter
+.ipynb_checkpoints/
