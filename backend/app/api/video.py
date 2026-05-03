@@ -1,14 +1,16 @@
 from fastapi import APIRouter, UploadFile, File, Depends
+from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user
 from app.utils.file_validator import validate_video
 from app.utils.file_manager import save_upload_file
 from app.facades.ai_facade import AIFacade
+from app.core.database import get_db
 
 router = APIRouter(prefix="/video", tags=["Video"])
 
 
-def get_facade() -> AIFacade:
-    return AIFacade()
+def get_facade(db: Session = Depends(get_db)) -> AIFacade:
+    return AIFacade(db)
 
 
 def save_validated_video(file: UploadFile = File(...)) -> str:

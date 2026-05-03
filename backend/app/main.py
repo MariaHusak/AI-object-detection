@@ -6,7 +6,9 @@ from app.api.auth import router as auth_router
 from app.core.database import Base, engine
 from app.models.user import User
 from fastapi.staticfiles import StaticFiles
-
+from app.api.stats_router import router as stats_router
+from app.models.user import User
+from app.models.processing_log import ProcessingLog
 
 Base.metadata.create_all(bind=engine)
 
@@ -29,6 +31,7 @@ app.add_middleware(
 app.include_router(image_router)
 app.include_router(video_router)
 app.include_router(auth_router)
+app.include_router(stats_router)
 
 app.mount("/outputs", StaticFiles(directory="outputs"), name="outputs")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

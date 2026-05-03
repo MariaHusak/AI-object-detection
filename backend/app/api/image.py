@@ -1,15 +1,17 @@
 from fastapi import APIRouter, UploadFile, File, Query, Depends
 from typing import List, Optional
+from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user
 from app.utils.file_validator import validate_image
 from app.utils.file_manager import save_upload_file
 from app.facades.ai_facade import AIFacade
+from app.core.database import get_db
 
 router = APIRouter(prefix="/image", tags=["Image"])
 
 
-def get_facade() -> AIFacade:
-    return AIFacade()
+def get_facade(db: Session = Depends(get_db)) -> AIFacade:
+    return AIFacade(db)
 
 
 def save_validated_image(file: UploadFile = File(...)) -> str:
@@ -30,7 +32,7 @@ async def detect(
 ):
     return {
         "file": path,
-        "detections": facade.detect(path)
+        "detections": facade.detect(path, user_id=user)
     }
 
 
@@ -40,7 +42,7 @@ async def detect_preview(
     path: str = Depends(save_validated_image),
     facade: AIFacade = Depends(get_facade)
 ):
-    return facade.detect_preview(path)
+    return facade.detect_preview(path, user_id=user)
 
 
 @router.post("/segment-preview")
@@ -49,7 +51,7 @@ async def segment_preview(
     path: str = Depends(save_validated_image),
     facade: AIFacade = Depends(get_facade)
 ):
-    return facade.segment_preview(path)
+    return facade.segment_preview(path, user_id=user)
 
 
 @router.post("/cutout")
@@ -60,7 +62,7 @@ async def cutout(
     selected_indices: Optional[List[int]] = Query(default=None),
     mode: str = "multi"
 ):
-    return facade.cutout(path, selected_indices, mode)
+    return facade.cutout(path, selected_indices, mode, user_id=user)
 
 
 @router.post("/replace-background")
