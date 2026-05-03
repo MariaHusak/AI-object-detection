@@ -9,48 +9,52 @@ from app.workers.celery_tasks import process_video_task
 from celery.result import AsyncResult
 from app.core.celery_app import celery_app
 import os
+import time
 
 BASE_URL = "http://localhost:8000"
 
 
 class AIFacade:
 
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
         self.pipeline = PipelineFactory.create()
         self.drawer = DrawService()
         self.cutter = CutoutService()
         self.bg_service = BackgroundService()
         self.video_service = VideoService()
 
-    def detect(self, image_path):
-        return self.pipeline.detector.detect(image_path)
+    def detect(self, image_path, user_id=None):
+        start = time.time()
+        detections = self.pipeline.detector.detect(image_path)
+        elapsed = round(time.time() - start, 3)
+        if user_id and detections:
+            avg_conf = sum(d["confidence"] for d in detections) / len(detections)
+            from app.repositories.processing_repository import ProcessingRepository
+            ProcessingRepository(self.db).create(user_id, elapsed, avg_conf)
+        return detections
 
-    def detect_preview(self, image_path):
-        detections = self.detect(image_path)
-
+    def detect_preview(self, image_path, user_id=None):
+        detections = self.detect(image_path, user_id=user_id)
         image_url = self.drawer.draw_boxes(image_path, detections)
-
         return {
             "image_url": image_url,
             "boxes": self._format_boxes(detections)
         }
 
-    def segment_preview(self, image_path, selected_indices=None):
-        detections, masks = self._detect_and_segment(
-            image_path, selected_indices)
-        result = self.drawer.draw_segmentation(
-            image_path, detections, masks)
+    def segment_preview(self, image_path, selected_indices=None, user_id=None):
+        detections, masks = self._detect_and_segment(image_path, selected_indices, user_id=user_id)
+        result = self.drawer.draw_segmentation(image_path, detections, masks)
         return {
             "result_image": result,
             "detections": self._format_boxes(detections)
         }
 
-    def cutout(self, image_path, selected_indices=None, mode="multi"):
-        detections, masks = self._detect_and_segment(image_path, selected_indices)
+    def cutout(self, image_path, selected_indices=None, mode="multi", user_id=None):
+        detections, masks = self._detect_and_segment(image_path, selected_indices, user_id=user_id)
         result = self._create_cutout_by_mode(image_path, masks, mode)
         cutouts = result.get("cutouts") or [result.get("cutout")]
         cutouts = [self._to_url(c) for c in cutouts if c]
-
         return {
             "image_url": self.drawer._to_public_url(
                 self.drawer.draw_boxes(image_path, detections)
@@ -78,8 +82,8 @@ class AIFacade:
             "result": task.result if task.ready() else None
         }
 
-    def _detect_and_segment(self, image_path, selected_indices=None):
-        detections = self.detect(image_path)
+    def _detect_and_segment(self, image_path, selected_indices=None, user_id=None):
+        detections = self.detect(image_path, user_id=user_id)
         detections = self._filter_detections(detections, selected_indices)
         masks = self.pipeline.segmenter.segment(image_path, detections)
         return detections, masks
@@ -107,11 +111,7 @@ class AIFacade:
                 "label": det["class"],
                 "conf": det["confidence"]
             })
-
         return formatted
 
     def _to_url(self, path: str):
         return BASE_URL + "/" + path.replace("\\", "/")
-
-
-
