@@ -73,7 +73,7 @@ export default function VideoPage() {
           <div className="mb-6">
             <h1 className="text-2xl font-semibold">Video AI Processing</h1>
             <p className="text-sm text-gray-500">
-              Async object detection & segmentation
+              Async object detection
             </p>
           </div>
 

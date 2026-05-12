@@ -1,0 +1,68 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ai_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/backend
+      - shared_uploads:/backend/uploads
+      - shared_outputs:/backend/outputs
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  celery:
+    build:
+      context: ./backend
+    container_name: ai_celery
+    volumes:
+      - ./backend:/backend
+      - shared_uploads:/backend/uploads
+      - shared_outputs:/backend/outputs
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - backend
+      - redis
+    command: >
+      celery -A app.core.celery_app.celery_app worker --loglevel=info --pool=solo
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ai_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16-alpine
+    container_name: ai_db
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai_redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+  shared_uploads:
+  shared_outputs:
