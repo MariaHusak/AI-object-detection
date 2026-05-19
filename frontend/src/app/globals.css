@@ -9,12 +9,18 @@
   --muted: #8a8a8a;
 }
 
-* {
-  box-sizing: border-box;
+[data-theme="light"] {
+  --background: #f0f0f0;
+  --surface: #ffffff;
+  --surface-2: #e8e8e8;
+  --border: #d4d4d4;
+  --text: #111111;
+  --muted: #666666;
 }
 
-html,
-body {
+* { box-sizing: border-box; }
+
+html, body {
   padding: 0;
   margin: 0;
   background: var(--background);
@@ -22,33 +28,18 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button {
-  cursor: pointer;
-}
-
-input,
-textarea,
-select {
-  outline: none;
-}
-
-/* reusable classes */
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; }
+input, textarea, select { outline: none; }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
+  color: var(--text);
 }
 
-.card-hover {
-  transition: 0.2s ease;
-}
-
+.card-hover { transition: 0.2s ease; }
 .card-hover:hover {
   background: var(--surface-2);
   border-color: #3a3a3a;
@@ -56,53 +47,42 @@ select {
 
 .input {
   width: 100%;
-  background: #111;
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  color: white;
+  color: var(--text);
   padding: 12px 14px;
   border-radius: 12px;
 }
-
-.input:focus {
-  border-color: #555;
-}
+.input:focus { border-color: #555; }
 
 .btn {
   border-radius: 12px;
   padding: 12px 18px;
   border: 1px solid var(--border);
-  background: #1a1a1a;
-  color: white;
+  background: var(--surface-2);
+  color: var(--text);
   transition: 0.2s;
 }
-
-.btn:hover {
-  background: #222;
-}
+.btn:hover { background: var(--surface); }
 
 .btn-primary {
-  background: #f2f2f2;
-  color: black;
+  background: #111111;
+  color: #ffffff;
   border: none;
 }
-
-.btn-primary:hover {
-  background: white;
-}
+.btn-primary:hover { opacity: 0.85; }
 
 .sidebar-item {
   padding: 12px 14px;
   border-radius: 12px;
-  color: #8a8a8a;
+  color: var(--muted);
   transition: 0.2s;
 }
-
 .sidebar-item:hover {
-  background: #1a1a1a;
-  color: white;
+  background: var(--surface-2);
+  color: var(--text);
 }
-
 .sidebar-active {
-  background: #1f1f1f;
-  color: white;
+  background: var(--surface-2);
+  color: var(--text);
 }
