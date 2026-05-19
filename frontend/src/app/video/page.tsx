@@ -14,25 +14,19 @@ export default function VideoPage() {
 
   const uploadVideo = async () => {
     if (!file) return;
-
     const formData = new FormData();
     formData.append("file", file);
-
     setLoading(true);
-
     try {
       const res = await api.post("/video/process-async", formData);
-
       const id = res.data.task_id;
       setTaskId(id);
       setStatus("Processing...");
-
       pollStatus(id);
     } catch (err) {
       console.error(err);
       alert("Upload failed");
     }
-
     setLoading(false);
   };
 
@@ -41,9 +35,7 @@ export default function VideoPage() {
       try {
         const res = await api.get(`/video/status/${id}`);
         const data = res.data;
-
         setStatus(data.status);
-
         if (data.status === "SUCCESS") {
           clearInterval(interval);
           const videoPath = data.result?.video;
@@ -52,7 +44,6 @@ export default function VideoPage() {
             setVideoUrl(`http://localhost:8000/${normalizedPath}`);
           }
         }
-
         if (data.status === "FAILURE") {
           clearInterval(interval);
           alert("Processing failed");
@@ -66,43 +57,52 @@ export default function VideoPage() {
 
   return (
     <ProtectedRoute>
-      <main className="flex min-h-screen bg-black text-white">
+      <main
+        className="flex min-h-screen"
+        style={{ background: "var(--background)", color: "var(--text)" }}
+      >
         <Sidebar />
 
         <section className="flex-1 p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-semibold">Video AI Processing</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text)" }}>
+              Video AI Processing
+            </h1>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>
               Async object detection
             </p>
           </div>
 
-          <div className="bg-[#111] border border-gray-800 p-6 rounded-xl mb-6">
+          <div className="card p-6 rounded-xl mb-6 space-y-4">
             <input
               type="file"
               accept="video/*"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="mb-4"
+              style={{ color: "var(--text)" }}
             />
-
             <button
               onClick={uploadVideo}
               disabled={!file || loading}
-              className="px-5 py-2 bg-white text-black rounded-md text-sm font-medium disabled:opacity-40"
+              style={{ background: "var(--text)", color: "var(--background)" }}
+              className="px-5 py-2 rounded-md text-sm font-medium disabled:opacity-40 transition hover:opacity-85"
             >
               {loading ? "Uploading..." : "Process Video"}
             </button>
           </div>
 
           {status && (
-            <div className="bg-[#111] border border-gray-800 p-4 rounded-xl mb-6">
-              <p className="text-gray-400 text-sm">Status: {status}</p>
+            <div className="card p-4 rounded-xl mb-6">
+              <p className="text-sm" style={{ color: "var(--muted)" }}>
+                Status: {status}
+              </p>
             </div>
           )}
 
           {videoUrl && (
-            <div className="bg-[#111] border border-gray-800 p-4 rounded-xl">
-              <p className="text-sm text-gray-500 mb-2">Result Video</p>
+            <div className="card p-4 rounded-xl">
+              <p className="text-sm mb-2" style={{ color: "var(--muted)" }}>
+                Result Video
+              </p>
               <video src={videoUrl} controls className="w-full rounded-lg" />
             </div>
           )}

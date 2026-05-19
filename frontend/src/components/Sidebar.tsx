@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
@@ -13,19 +14,15 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="
-        sticky top-0
-        h-screen
-        w-64
-        bg-[#0f0f0f]
-        border-r border-gray-800
-        flex flex-col
-        p-6
-      "
+      style={{
+        background: "var(--surface)",
+        borderRight: "1px solid var(--border)",
+      }}
+      className="sticky top-0 h-screen w-64 flex flex-col p-6"
     >
       {/* LOGO */}
       <div className="mb-10">
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
           VisualAI
         </h1>
       </div>
@@ -34,40 +31,34 @@ export default function Sidebar() {
       <nav className="flex flex-col gap-2">
         <Link
           href="/dashboard"
-          className="px-4 py-3 rounded-lg text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition"
+          style={{ color: "var(--muted)" }}
+          className="px-4 py-3 rounded-lg hover:opacity-100 transition sidebar-item"
         >
           Dashboard
         </Link>
-
         <Link
           href="/image"
-          className="px-4 py-3 rounded-lg text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition"
+          style={{ color: "var(--muted)" }}
+          className="px-4 py-3 rounded-lg transition sidebar-item"
         >
           Image Tools
         </Link>
-
         <Link
           href="/video"
-          className="px-4 py-3 rounded-lg text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition"
+          style={{ color: "var(--muted)" }}
+          className="px-4 py-3 rounded-lg transition sidebar-item"
         >
           Video Tools
         </Link>
       </nav>
 
-      {/* PUSH DOWN */}
-      <div className="mt-auto pt-6">
+      <div className="mt-auto flex flex-col gap-3">
+        <ThemeToggle />
+
         <button
           onClick={logout}
-          className="
-            w-full
-            px-4 py-3
-            rounded-lg
-            bg-white
-            text-black
-            font-medium
-            hover:opacity-90
-            transition
-          "
+          style={{ background: "var(--text)", color: "var(--background)" }}
+          className="w-full px-4 py-3 rounded-lg font-medium hover:opacity-90 transition"
         >
           Logout
         </button>
