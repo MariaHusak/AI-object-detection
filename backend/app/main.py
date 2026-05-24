@@ -5,19 +5,21 @@ from .api.video import router as video_router
 from app.api.auth import router as auth_router
 from app.core.database import Base, engine
 from app.models.user import User
+from app.models.processing_log import ProcessingLog
 from fastapi.staticfiles import StaticFiles
 from app.api.stats_router import router as stats_router
-from app.models.user import User
-from app.models.processing_log import ProcessingLog
 
-Base.metadata.create_all(bind=engine)
+import os
 
+if os.getenv("TESTING") != "true":
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AI Object Detection System",
     version="1.0.0",
     description="Backend for object detection, segmentation and image processing"
 )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -43,4 +45,3 @@ def home():
         "message": "Backend is running",
         "status": "success"
     }
-
