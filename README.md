@@ -87,7 +87,7 @@
 
 ```bash
 git clone https://github.com/your-user/ai-object-detection.git
-cd ai-object-detection
+cd Ai-object-detection
 ```
 
 ### 3. Створення `.env` файлу
