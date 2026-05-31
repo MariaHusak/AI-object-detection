@@ -86,7 +86,7 @@
 ### 2. Клонування репозиторію
 
 ```bash
-git clone https://github.com/your-user/ai-object-detection.git
+https://github.com/MariaHusak/AI-object-detection.git
 cd Ai-object-detection
 ```
 
